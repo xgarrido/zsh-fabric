@@ -1,0 +1,108 @@
+#+TITLE:  Zsh Fabric Fabfile
+#+AUTHOR: Xavier Garrido
+#+DATE:   2013-02-17
+#+OPTIONS: toc:nil num:nil ^:nil
+
+This is part of the [[file:zsh-fabric.org][Zsh Fabric]].
+
+* Zsh Fabric - Fabfile
+This file sets all the =python= functions to be used by Fabric and the
+[[file:zsh-fabric.org][=fab_manager=]] function.
+
+** Import fabric API
+#+BEGIN_SRC python
+  from fabric.api import *
+#+END_SRC
+
+** Zsh shebang
+Since most of the actions done through Fabric will used =zsh= functions, we will
+need to source the =.zshrc= file on the remote machines[1]. This simple file
+will be placed in =/tmp/${USER}= directory.
+
+#+BEGIN_SRC python
+  SHEBANGDIR  = '/tmp/${USER}'
+  SHEBANGFILE = SHEBANGDIR + '/.zshfab.zsh'
+  SHEBANGCMD  = 'source ~/.zshrc > /dev/null 2>&1 && \$"@"'
+
+  def create_shebang ():
+      run ("mkdir -p {SHEBANGDIR}".format (SHEBANGDIR=SHEBANGDIR))
+      run ("echo \"{SHEBANGCMD}\" > {SHEBANGFILE}".format (SHEBANGCMD=SHEBANGCMD,
+                                                             SHEBANGFILE=SHEBANGFILE))
+#+END_SRC
+
+** Update debian machines
+This function will run =apt-get= commands in *parallel* to update and installed
+new packages version.
+
+#+BEGIN_SRC python
+  def update_debian ():
+      sudo ("apt-get -y update && apt-get -y upgrade")
+#+END_SRC
+
+** Update =antigen= repositories
+[[https://github.com/zsh-users/antigen][Antigen]] is a plugin manager for =zsh=. The =antigen= function can do all the
+=antigen= actions (update, cleanup...) by passing the action as a argument. By
+default, this function update all the repositories.
+
+#+BEGIN_SRC python
+  def antigen (cmd="update"):
+      create_shebang ()
+      run ("zsh {SHEBANGFILE} antigen {CMD}".format (SHEBANGFILE=SHEBANGFILE,
+                                                     CMD=cmd))
+  def update_antigen ():
+      create_shebang ()
+      antigen ("selfupdate")
+      antigen ()
+#+END_SRC
+
+** Update SuperNEMO software
+*** Aggregators
+[[https://github.com/xgarrido/zsh-aggregator][Aggregators]] are tools provided by SuperNEMO collaboration to ease the
+installation of all SuperNEMO software components.
+#+BEGIN_SRC python
+  def aggregator (cmd="update all"):
+      create_shebang ()
+      run ("zsh {SHEBANGFILE} aggregator {CMD}".format (SHEBANGFILE=SHEBANGFILE,
+                                                        CMD=cmd))
+  def update_aggregator ():
+      create_shebang ()
+      aggregator ()
+
+  def build_aggregator ():
+      create_shebang ()
+      aggregator ("build all")
+#+END_SRC
+
+*** Sn@ilWare
+[[https://github.com/xgarrido/zsh-snailware][Sn@ilWare]] is a tool to manage a local installation of all SuperNEMO software
+components. It does not rely to aggregators and works almost alone.
+#+BEGIN_SRC python
+  def snailware (cmd="git-update all"):
+      create_shebang ()
+      run ("zsh {SHEBANGFILE} snailware {CMD}".format (SHEBANGFILE=SHEBANGFILE,
+                                                       CMD=cmd))
+  def update_snailware ():
+      create_shebang ()
+      snailware ()
+
+  def build_snailware ():
+      create_shebang ()
+      snailware ("build all")
+#+END_SRC
+
+** Generic commands
+*** Zsh function call
+#+BEGIN_SRC python
+  def zsh_command (cmd):
+      create_shebang ()
+      run ("zsh /tmp/garrido/test_output.zsh %s" % cmd)
+#+END_SRC
+*** Bash commands
+#+BEGIN_SRC python
+  def command(cmd):
+      run(cmd)
+#+END_SRC
+
+* Footnotes
+
+[1] this assumes that all the machines are configured and setup in the same way.

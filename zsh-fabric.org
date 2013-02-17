@@ -1,0 +1,205 @@
+#+TITLE:  Zsh Fabric
+#+AUTHOR: Xavier Garrido
+#+DATE:   2013-02-17
+#+OPTIONS: toc:nil num:nil ^:nil
+
+* Introduction
+:PROPERTIES:
+:CUSTOM_ID: introduction
+:END:
+This file provides some functions and completions to interact with [[https://github.com/fabric/fabric][Fabric]]. As
+Fabric's documentation says
+#+BEGIN_QUOTE
+Fabric is a Python (2.5 or higher) library and command-line tool for
+streamlining the use of SSH for application deployment or systems administration
+tasks.
+
+It provides a basic suite of operations for executing local or remote shell
+commands (normally or via sudo) and uploading/downloading files, as well as
+auxiliary functionality such as prompting the running user for input, or
+aborting execution.
+#+END_QUOTE
+
+This plugin provides a interface to Fabric as well as some aliases to common
+tasks. It it mainly oriented to LAL deployement and machine maintenance in
+particular to keep up-to-date SuperNEMO software on several Ubuntu-like machines
+and on LAL remote servers.
+
+The latest version is at http://github.com/xgarrido/zsh-fabric.
+
+* Installation
+:PROPERTIES:
+:CUSTOM_ID: installation
+:END:
+
+** Requirements
+The functions defined in this file make use of some functions utilities provided
+by =zsh-pkgtools=. Then, this plugin can be run in a standalone way and needs
+the =zsh-utilities= plugin. Latest version of =zsh-utlities= can be downloaded
+and installed from this location http://github.com/xgarrido/zsh-utilities.
+
+** Installation steps
+There are different way to install this plugin :
+*** In your =~/.zshrc=
+1) Download the script or clone this repository:
+   #+BEGIN_SRC sh :tangle no
+     git clone git://github.com/xgarrido/zsh-fabric.git
+   #+END_SRC
+2) Source this script *at the end* of =~/.zshrc=:
+   #+BEGIN_SRC sh :tangle no
+     source /path/to/zsh-fabric/init.zsh
+   #+END_SRC
+3) Source =~/.zshrc= to take changes into account:
+   #+BEGIN_SRC sh :tangle no
+     source ~/.zshrc
+   #+END_SRC
+*** With oh-my-zsh
+1) Download the script or clone this repository in [[http://github.com/robbyrussell/oh-my-zsh][oh-my-zsh]] plugins directory:
+   #+BEGIN_SRC sh :tangle no
+     cd ~/.oh-my-zsh/custom/plugins
+     git clone git://github.com/xgarrido/zsh-fabric.git
+   #+END_SRC
+2) Activate the plugin in =~/.zshrc= (in *last* position)
+   #+BEGIN_SRC sh :tangle no
+     plugins=( [plugins...] zsh-fabric)
+   #+END_SRC
+3) Source =~/.zshrc= to take changes into account:
+   #+BEGIN_SRC sh :tangle no
+     source ~/.zshrc
+   #+END_SRC
+*** With [[https://github.com/zsh-users/antigen][antigen]] (recommended way)
+Add the following line into your =~/.zshrc= file:
+#+BEGIN_SRC sh :tangle no
+  antigen-bundle xgarrido/zsh-fabric
+#+END_SRC
+
+* Structure
+:PROPERTIES:
+:CUSTOM_ID: structure
+:END:
+
+This =zsh-fabric.org= file provides everything you need to execute =zsh=
+functions. It is loaded automatically on =zsh= startup if you have well followed
+the [[#installation][installation]] process. Nevertheless, since Fabric works with a =fabfile.py=
+file where different operations are described in an easy way through python
+function, there is an additionnal [[file:python-fabfile.org][file]] where different "maintenance" operations
+are defined. Thus the =zsh= functions are just a wrapper around these
+operations.
+
+Furthermore, there is also a [[file:_fab_manager][=_fab_manager=]] completion file to ease the use of
+the =fab_manager= function.
+
+Besides the fact that [[http://orgmode.org/][org-mode]] is used, this plugin does not use the org-babel
+tangling features and thus, does not assume that emacs is properly installed and
+set. All the tangling stuff is done through a simple [[file:Makefile][Makefile]] and some [[http://www.gnu.org/software/sed/][sed]]
+tricks. In this way, it can be used without emacs. The only needed knowledge
+about org-mode is the code wrapping that *must* be done using proper code blocks
+calls (see [[http://orgmode.org/manual/Structure-of-code-blocks.html#Structure-of-code-blocks][org babel documentation]]). Nevertheless, it is recommended to have a
+look on org-mode features especially folding/unfolding abilities which make the
+read and the navigation pretty easy.
+
+* Functions
+:PROPERTIES:
+:CUSTOM_ID: functions
+:END:
+Most of the job is done through a unique function called =fab_manager= that
+provided an interface to Fabric and some =zsh= completion facilities.
+
+** Preamble
+This function can only works if Fabric has been properly installed[1].
+#+BEGIN_SRC sh
+  zsh_fabric_dir=$(dirname $0)
+  if (( ! $+commands[fab] )); then
+      pkgtools__msg_error "Fabric is not installed on this machine !"
+  else
+#+END_SRC
+
+** Fabric manager
+#+BEGIN_SRC sh
+  function fab_manager ()
+  {
+      __pkgtools__default_values
+      __pkgtools__at_function_enter fab_manager
+
+      local append_list_of_options_arg
+      local append_list_of_cmd_arg
+      while [ -n "$1" ]; do
+          local token="$1"
+          if [ "${token[0,1]}" = "-" ]; then
+              local opt=${token}
+              if [ "${opt}" = "-h" -o "${opt}" = "--help" ]; then
+                  return 0
+              elif [ "${opt}" = "-d" -o "${opt}" = "--debug" ]; then
+                  pkgtools__msg_using_debug
+              elif [ "${opt}" = "-D" -o "${opt}" = "--devel" ]; then
+                  pkgtools__msg_using_devel
+              elif [ "${opt}" = "-v" -o "${opt}" = "--verbose" ]; then
+                  pkgtools__msg_using_verbose
+              elif [ "${opt}" = "-W" -o "${opt}" = "--no-warning" ]; then
+                  pkgtools__msg_not_using_warning
+              elif [ "${opt}" = "-q" -o "${opt}" = "--quiet" ]; then
+                  pkgtools__msg_using_quiet
+                  export PKGTOOLS_MSG_QUIET=1
+              elif [ "${opt}" = "-i" -o "${opt}" = "--interactive" ]; then
+                  pkgtools__ui_interactive
+              elif [ "${opt}" = "-b" -o "${opt}" = "--batch" ]; then
+                  pkgtools__ui_batch
+              elif [ "${opt}" = "--gui" ]; then
+                  pkgtools__ui_using_gui
+              elif [ "${opt}" = "--password" ]; then
+                  append_list_of_options_arg+="${opt} "
+              else
+                  append_list_of_cmd_arg+="${opt} "
+              fi
+          else
+              if [ "x${token}" != "x" ]; then
+                  append_list_of_cmd_arg+="${token} "
+              fi
+          fi
+          shift
+      done
+
+      pkgtools__msg_notice "append_list_of_cmd_arg=${append_list_of_cmd_arg}"
+      pkgtools__msg_notice "append_list_of_options_arg=${append_list_of_options_arg}"
+
+      # Use this local function to do the evaluation on execution and not on 'compilation'
+      __fab () {
+          eval ffab "$@"
+      }
+
+      pkgtools__msg_notice "Running ${append_list_of_cmd_arg} mode"
+      case $HOSTNAME in
+          garrido-laptop)
+              user=garrido
+              hosts="garrido@lx3.lal.in2p3.fr"
+              ;;
+          lx3.lal.in2p3.fr|nemo*.lal.in2p3.fr)
+              user=nemo
+              hosts="pc-nemo5,pc-nemo6,pc-nemo8,garrido@pc-nemo9"
+              ;;
+      esac
+      __fab --user=${user} --hosts=${hosts} ${append_list_of_cmd_arg} ${append_list_of_options_arg}
+
+      __pkgtools__at_function_exit
+      return 0
+  }
+#+END_SRC
+
+** Aliases
+Provide some nice and easy aliases to usual actions
+#+BEGIN_SRC sh
+  alias ffab='fab --fabfile=${zsh_fabric_dir}/python-fabfile.py --skip-bad-hosts --warn-only'
+  alias fup_antigen='fab_manager update_antigen'
+  alias fup_aggregator='fab_manager update_aggregator'
+  alias fup_snailware='fab_manager update_snailware'
+#+END_SRC
+
+** Postamble
+Close the Fabric existence
+#+BEGIN_SRC sh
+  fi
+#+END_SRC
+
+* Footnotes
+
+[1] Be sure to have set the =PATH= variable before testing Fabric existence.

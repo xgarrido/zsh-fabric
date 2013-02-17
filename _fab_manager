@@ -1,0 +1,15 @@
+#compdef fab_manager
+
+_fab_manager () {
+  compadd \
+    $(fab --fabfile=${zsh_fabric_dir}/python-fabfile.py --list | grep -v commands)
+}
+
+_fab_manager
+
+# Local Variables:
+# mode: Shell-Script
+# sh-indentation: 2
+# indent-tabs-mode: nil
+# sh-basic-offset: 2
+# End:
