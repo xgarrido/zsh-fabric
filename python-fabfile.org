@@ -39,6 +39,12 @@ new packages version.
       sudo ("apt-get -y update && apt-get -y upgrade")
 #+END_SRC
 
+** Update =.zshrc= file
+#+BEGIN_SRC python
+  def update_zshrc ():
+      run ("wget --no-check-certificate https://raw.github.com/xgarrido/dotfiles/master/zshrc -O ~/.zshrc")
+#+END_SRC
+
 ** Update =antigen= repositories
 [[https://github.com/zsh-users/antigen][Antigen]] is a plugin manager for =zsh=. The =antigen= function can do all the
 =antigen= actions (update, cleanup...) by passing the action as a argument. By
