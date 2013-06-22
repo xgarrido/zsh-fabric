@@ -110,7 +110,7 @@ This function can only works if Fabric has been properly installed[1].
 #+BEGIN_SRC sh
   zsh_fabric_dir=$(dirname $0)
   if (( ! $+commands[fab] )); then
-      pkgtools__msg_error "Fabric is not installed on this machine !"
+      pkgtools__msg_warning "Fabric is not installed on this machine !"
   else
 #+END_SRC
 
@@ -146,18 +146,27 @@ This function can only works if Fabric has been properly installed[1].
                   pkgtools__ui_batch
               elif [ "${opt}" = "--gui" ]; then
                   pkgtools__ui_using_gui
-              elif [ "${opt}" = "--password" ]; then
-                  append_list_of_options_arg+="${opt} "
               else
-                  append_list_of_cmd_arg+="${opt} "
+                  if [[ "${opt}" == *=* || "${opt}" == *:* ]]; then
+                      append_list_of_options_arg+="${opt}\" "
+                  else
+                      append_list_of_options_arg+="${opt} "
+                  fi
               fi
           else
               if [ "x${token}" != "x" ]; then
-                  append_list_of_cmd_arg+="${token} "
+                  if [[ "${token}" == *=* || "${token}" == *:* ]]; then
+                      append_list_of_cmd_arg+="${token}\" "
+                  else
+                      append_list_of_cmd_arg+="${token} "
+                  fi
               fi
           fi
           shift
       done
+
+      append_list_of_cmd_arg=$(echo ${append_list_of_cmd_arg} | sed 's/:/:\"/g')
+      append_list_of_options_arg=$(echo ${append_list_of_options_arg} | sed 's/=/=\"/g')
 
       pkgtools__msg_notice "append_list_of_cmd_arg=${append_list_of_cmd_arg}"
       pkgtools__msg_notice "append_list_of_options_arg=${append_list_of_options_arg}"
@@ -167,23 +176,33 @@ This function can only works if Fabric has been properly installed[1].
           eval ffab "$@"
       }
 
-      pkgtools__msg_notice "Running ${append_list_of_cmd_arg} mode"
-      case $HOSTNAME in
-          garrido-laptop)
-              user=garrido
-              hosts="garrido@lx3.lal.in2p3.fr"
-              ;;
-          lx3.lal.in2p3.fr|nemo*.lal.in2p3.fr)
-              user=nemo
-              hosts="pc-nemo5,pc-nemo6,pc-nemo8,garrido@pc-nemo9"
-              ;;
-      esac
-      __fab --user=${user} --hosts=${hosts} ${append_list_of_cmd_arg} ${append_list_of_options_arg}
+      # local default_list_of_hosts="pc-nemo4,pc-nemo5,pc-nemo6,pc-nemo8,garrido@pc-nemo9"
 
+      # case $HOSTNAME in
+      #     garrido-laptop)
+      #          if pkgtools__at_LAL; then
+      #              user=nemo
+      #              hosts=${default_list_of_hosts}
+      #          fi
+      #          hosts+=",garrido@lx3.lal.in2p3.fr"
+      #          ;;
+      #     lx3.lal.in2p3.fr|nemo*.lal.in2p3.fr)
+      #         user=nemo
+      #         hosts=${default_list_of_hosts}
+      #         ;;
+      # esac
+      #__fab --user=${user} --hosts=${hosts} ${append_list_of_cmd_arg} ${append_list_of_options_arg}
+      __fab ${append_list_of_cmd_arg} ${append_list_of_options_arg}
+
+      pkgtools__msg_notice "hosts=${hosts}"
+
+      unset hosts user
       __pkgtools__at_function_exit
       return 0
   }
 #+END_SRC
+
+#+RESULTS:
 
 ** Aliases
 Provide some nice and easy aliases to usual actions

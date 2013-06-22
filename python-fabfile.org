@@ -27,10 +27,25 @@ will be placed in =/tmp/${USER}= directory.
   def create_shebang ():
       run ("mkdir -p {SHEBANGDIR}".format (SHEBANGDIR=SHEBANGDIR))
       run ("echo \"{SHEBANGCMD}\" > {SHEBANGFILE}".format (SHEBANGCMD=SHEBANGCMD,
-                                                             SHEBANGFILE=SHEBANGFILE))
+                                                           SHEBANGFILE=SHEBANGFILE))
 #+END_SRC
 
-** Update debian machines
+** Fabric operations
+*** Needed =hello= task
+#+BEGIN_SRC python
+  def hello (msg="Hello World!"):
+      run ('echo %s' % msg)
+#+END_SRC
+
+*** Install debian packages
+This function will install in *parallel* several debian packages
+
+#+BEGIN_SRC python
+  def install_debian (packages):
+      sudo ("apt-get -y install %s" % packages)
+#+END_SRC
+
+*** Update debian machines
 This function will run =apt-get= commands in *parallel* to update and installed
 new packages version.
 
@@ -39,13 +54,13 @@ new packages version.
       sudo ("apt-get -y update && apt-get -y upgrade")
 #+END_SRC
 
-** Update =.zshrc= file
+*** Update =.zshrc= file
 #+BEGIN_SRC python
   def update_zshrc ():
       run ("wget --no-check-certificate https://raw.github.com/xgarrido/dotfiles/master/zshrc -O ~/.zshrc")
 #+END_SRC
 
-** Update =antigen= repositories
+*** Update =antigen= repositories
 [[https://github.com/zsh-users/antigen][Antigen]] is a plugin manager for =zsh=. The =antigen= function can do all the
 =antigen= actions (update, cleanup...) by passing the action as a argument. By
 default, this function update all the repositories.
@@ -61,8 +76,8 @@ default, this function update all the repositories.
       antigen ()
 #+END_SRC
 
-** Update SuperNEMO software
-*** Aggregators
+*** Update SuperNEMO software
+**** Aggregators
 [[https://github.com/xgarrido/zsh-aggregator][Aggregators]] are tools provided by SuperNEMO collaboration to ease the
 installation of all SuperNEMO software components.
 #+BEGIN_SRC python
@@ -79,7 +94,7 @@ installation of all SuperNEMO software components.
       aggregator ("build all")
 #+END_SRC
 
-*** Sn@ilWare
+**** Sn@ilWare
 [[https://github.com/xgarrido/zsh-snailware][Sn@ilWare]] is a tool to manage a local installation of all SuperNEMO software
 components. It does not rely to aggregators and works almost alone.
 #+BEGIN_SRC python
@@ -96,18 +111,24 @@ components. It does not rely to aggregators and works almost alone.
       snailware ("build all")
 #+END_SRC
 
-** Generic commands
-*** Zsh function call
+*** Generic commands
+**** Zsh function call
 #+BEGIN_SRC python
   def zsh_command (cmd):
       create_shebang ()
       run ("zsh /tmp/garrido/test_output.zsh %s" % cmd)
 #+END_SRC
-*** Bash commands
+**** Bash commands
 #+BEGIN_SRC python
-  def command(cmd):
-      run(cmd)
+  def command (cmd):
+      run (cmd)
 #+END_SRC
+**** =sudo= commands
+#+BEGIN_SRC python
+  def sudo_command (cmd):
+      sudo (cmd)
+#+END_SRC
+
 
 * Footnotes
 
