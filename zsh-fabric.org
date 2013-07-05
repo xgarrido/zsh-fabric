@@ -110,7 +110,7 @@ This function can only works if Fabric has been properly installed[1].
 #+BEGIN_SRC sh
   zsh_fabric_dir=$(dirname $0)
   if (( ! $+commands[fab] )); then
-      pkgtools__msg_warning "Fabric is not installed on this machine !"
+      pkgtools__msg_debug "Fabric is not installed on this machine !"
   else
 #+END_SRC
 
