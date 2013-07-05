@@ -129,7 +129,6 @@ components. It does not rely to aggregators and works almost alone.
       sudo (cmd)
 #+END_SRC
 
-
 * Footnotes
 
 [1] this assumes that all the machines are configured and setup in the same way.
