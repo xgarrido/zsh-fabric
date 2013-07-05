@@ -34,7 +34,6 @@ _fab_manager () {
     && ret=0
   case $state in
     (hosts)
-      __fab_hosts
       _describe -t hosts 'SSH machines' _fab_hosts && ret=0
       ;;
     (users)
