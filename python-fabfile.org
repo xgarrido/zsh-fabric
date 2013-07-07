@@ -51,7 +51,10 @@ new packages version.
 
 #+BEGIN_SRC python
   def update_debian ():
-      sudo ("apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade")
+      sudo ("apt-get -y update")
+      sudo ("apt-get -y upgrade")
+      sudo ("apt-get -y dist-upgrade")
+      sudo ("apt-get -y autoremove")
 #+END_SRC
 
 *** Update =.zshrc= file
