@@ -74,7 +74,6 @@ default, this function update all the repositories.
       run ("zsh {SHEBANGFILE} antigen {CMD}".format (SHEBANGFILE=SHEBANGFILE,
                                                      CMD=cmd))
   def update_antigen ():
-      create_shebang ()
       antigen ("selfupdate")
       antigen ()
 #+END_SRC
