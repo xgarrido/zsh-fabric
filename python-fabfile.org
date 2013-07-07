@@ -51,7 +51,7 @@ new packages version.
 
 #+BEGIN_SRC python
   def update_debian ():
-      sudo ("apt-get -y update && apt-get -y upgrade")
+      sudo ("apt-get -y update && apt-get -y upgrade && apt-get -y dist-upgrade")
 #+END_SRC
 
 *** Update =.zshrc= file
@@ -87,10 +87,12 @@ installation of all SuperNEMO software components.
                                                         CMD=cmd))
   def update_aggregator ():
       create_shebang ()
-      aggregator ()
+      aggregator ("checkout all")
+      aggregator ("update all")
 
   def build_aggregator ():
       create_shebang ()
+      update_aggregator ()
       aggregator ("build all")
 #+END_SRC
 
