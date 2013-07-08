@@ -133,6 +133,23 @@ components. It does not rely to aggregators and works almost alone.
       sudo (cmd)
 #+END_SRC
 
+*** Miscellaneous
+**** Play a song
+#+BEGIN_SRC python
+  def play_song ():
+      sudo_command ("modprobe pcspkr")
+      song = "beep " + \
+             "-f 659 -l 460 -n -f 784  -l 340 -n -f 659  -l 230 -n " + \
+             "-f 659 -l 110 -n -f 880  -l 230 -n -f 659  -l 230 -n " + \
+             "-f 587 -l 230 -n -f 659  -l 460 -n -f 988  -l 340 -n " + \
+             "-f 659 -l 230 -n -f 659  -l 110 -n -f 1047 -l 230 -n " + \
+             "-f 988 -l 230 -n -f 784  -l 230 -n -f 659  -l 230 -n " + \
+             "-f 988 -l 230 -n -f 1318 -l 230 -n -f 659  -l 110 -n " + \
+             "-f 587 -l 230 -n -f 587  -l 110 -n -f 494  -l 230 -n " + \
+             "-f 740 -l 230 -n -f 659 -l 460"
+      sudo_command (song)
+#+END_SRC
+
 * Footnotes
 
 [1] this assumes that all the machines are configured and setup in the same way.
