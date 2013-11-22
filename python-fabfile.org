@@ -22,12 +22,14 @@ will be placed in =/tmp/${USER}= directory.
 #+BEGIN_SRC python
   SHEBANGDIR  = '/tmp/${USER}'
   SHEBANGFILE = SHEBANGDIR + '/.zshfab.zsh'
-  SHEBANGCMD  = 'source ~/.zshrc > /dev/null 2>&1 && \$"@"'
+  SHEBANGCMD  = 'source ~/.zshrc > /dev/null 2>&1'
 
-  def create_shebang ():
-      run ("mkdir -p {SHEBANGDIR}".format (SHEBANGDIR=SHEBANGDIR))
-      run ("echo \"{SHEBANGCMD}\" > {SHEBANGFILE}".format (SHEBANGCMD=SHEBANGCMD,
-                                                           SHEBANGFILE=SHEBANGFILE))
+  def create_shebang (CMD=''):
+      run ("mkdir -p %s" % SHEBANGDIR)
+      if CMD:
+          run ("echo \"%s && %s && $\"@\"\" > %s" % (SHEBANGCMD, CMD, SHEBANGFILE))
+      else:
+          run ("echo \"%s && $\"@\"\" > %s" % (SHEBANGCMD, SHEBANGFILE))
 #+END_SRC
 
 ** Fabric operations
@@ -83,36 +85,39 @@ default, this function update all the repositories.
 [[https://github.com/xgarrido/zsh-aggregator][Aggregators]] are tools provided by SuperNEMO collaboration to ease the
 installation of all SuperNEMO software components.
 #+BEGIN_SRC python
-  def aggregator (cmd="update all"):
+  def aggregator (CMD="update all"):
       create_shebang ()
-      run ("zsh {SHEBANGFILE} aggregator {CMD}".format (SHEBANGFILE=SHEBANGFILE,
-                                                        CMD=cmd))
+      run ("zsh %s aggregator %s" % (SHEBANGFILE, CMD))
   def update_aggregator ():
-      create_shebang ()
       aggregator ("checkout all")
       aggregator ("update all")
 
   def build_aggregator ():
-      create_shebang ()
       update_aggregator ()
       aggregator ("build all")
 #+END_SRC
 
-**** Sn@ilWare
-[[https://github.com/xgarrido/zsh-snailware][Sn@ilWare]] is a tool to manage a local installation of all SuperNEMO software
+**** SN@ilWare
+[[https://github.com/xgarrido/zsh-snailware][SN@ilWare]] is a tool to manage a local installation of all SuperNEMO software
 components. It does not rely to aggregators and works almost alone.
 #+BEGIN_SRC python
-  def snailware (cmd="git-update all"):
+  def snailware (CMD="status"):
+      run ("zsh %s snailware %s" % (SHEBANGFILE, CMD))
+  def update_snailware (component='all'):
       create_shebang ()
-      run ("zsh {SHEBANGFILE} snailware {CMD}".format (SHEBANGFILE=SHEBANGFILE,
-                                                       CMD=cmd))
-  def update_snailware ():
-      create_shebang ()
-      snailware ()
+      snailware ("git-update %s" % component)
 
-  def build_snailware ():
-      create_shebang ()
-      snailware ("build all")
+  def configure_snailware (component='all', options=''):
+      create_shebang ("aggregator setup cadfael && snailware setup %s" % component)
+      snailware ("configure %s %s" % (options, component))
+
+  def build_snailware (component='all'):
+      create_shebang ("aggregator setup cadfael && snailware setup %s" % component)
+      snailware ("build %s" % component)
+
+  def test_snailware (component='all'):
+      create_shebang ("aggregator setup cadfael && snailware setup %s" % component)
+      snailware ("test %s" % component)
 #+END_SRC
 
 *** Generic commands
@@ -120,7 +125,7 @@ components. It does not rely to aggregators and works almost alone.
 #+BEGIN_SRC python
   def zsh_command (cmd):
       create_shebang ()
-      run ("zsh /tmp/garrido/test_output.zsh %s" % cmd)
+      run ("zsh %s %s" % (SHEBANGFILE, CMD))
 #+END_SRC
 **** Bash commands
 #+BEGIN_SRC python
