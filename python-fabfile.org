@@ -71,10 +71,9 @@ new packages version.
 default, this function update all the repositories.
 
 #+BEGIN_SRC python
-  def antigen (cmd="update"):
+  def antigen (CMD="update"):
       create_shebang ()
-      run ("zsh {SHEBANGFILE} antigen {CMD}".format (SHEBANGFILE=SHEBANGFILE,
-                                                     CMD=cmd))
+      run ("zsh %s antigen %s" % (SHEBANGFILE, CMD))
   def update_antigen ():
       antigen ("selfupdate")
       antigen ()
