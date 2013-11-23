@@ -3,6 +3,7 @@ typeset -ga _fab_hosts
 typeset -ga _fab_users
 
 _fab_hosts=(
+  ccage.in2p3.fr
   lx3.lal.in2p3.fr
   pc-nemo4.lal.in2p3.fr
   pc-nemo5.lal.in2p3.fr
